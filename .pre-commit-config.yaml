@@ -1,0 +1,41 @@
+# A single `pre-commit install` wires both pre-commit and pre-push hooks.
+default_install_hook_types: [pre-commit, pre-push]
+
+repos:
+  - repo: local
+    hooks:
+      - id: scan-prompt-injection
+        name: Prompt injection scan
+        entry: python3 scripts/scan-injection.py
+        language: system
+        # Scope — single source of truth for both local pre-commit and CI:
+        #   - ANY markdown under .claude/ or .claude-plugin/ (future-proof for new Claude conventions)
+        #   - Top-level commands/, skills/, agents/, output-styles/, rules/ (symlink-to-home convention)
+        #   - Root CLAUDE.md (loaded into every Claude session)
+        files: ^\.claude(-plugin)?/.*\.md$|^(commands|skills|agents|output-styles|rules)/.*\.md$|^CLAUDE\.md$
+        pass_filenames: true
+
+  - repo: https://github.com/betterleaks/betterleaks
+    rev: v1.2.0
+    hooks:
+      - id: betterleaks
+
+  - repo: local
+    hooks:
+      - id: enforce-single-commit-push
+        name: Enforce one commit per push
+        entry: scripts/check-single-commit.sh
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true
+
+      # Runs the test suite for both scanners. Scoped to changes under
+      # scripts/ — pattern updates and hook tweaks must keep the corpus
+      # green, but README/command edits don't pay the test cost.
+      - id: scanner-test-suite
+        name: Scanner test suite
+        entry: scripts/tests/run-all.sh
+        language: system
+        files: ^scripts/
+        pass_filenames: false

@@ -1,0 +1,63 @@
+name: Security Scan
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# Both jobs run pre-commit/action against the PR diff range, using the hooks
+# defined in .pre-commit-config.yaml as the single source of truth. The
+# pre-commit framework handles file scoping (the `files:` regex per hook),
+# so CI behavior matches local pre-commit exactly.
+
+jobs:
+  injection-scan:
+    name: Prompt injection scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: scan-prompt-injection --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}
+
+  secrets-scan:
+    name: Secrets scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: betterleaks --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}
+
+  scanner-tests:
+    # Runs the scanner test suite directly (not via pre-commit/action) so
+    # CI always exercises the corpus regardless of whether the PR touches
+    # files matching the pre-commit hook's `files:` regex. This guards
+    # against pattern regressions in any PR that modifies scripts/.
+    name: Scanner test suite
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history required: test_check_single_commit.sh resolves
+          # HEAD~1 / HEAD~2 to build test fixtures for the pre-push hook.
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: scripts/tests/run-all.sh

@@ -2,26 +2,31 @@
 
 Personal Claude Code commands and skills repo. Commands are symlinked to `~/.claude/commands/` for global availability.
 
-## Branch rules
+## Commit & push rules
 
-- Never commit directly to `main` — always branch, then PR.
+- Never commit to `main` — branch, then PR.
+- One commit per push (pre-push hook enforces). Squash with `git rebase -i HEAD~N` if needed.
+- Don't bypass hooks (`--no-verify`).
+- Don't auto-commit without user approval.
+- No Claude / AI / LLM attribution in commit messages or PR descriptions. Applies to all variants: `Co-Authored-By: Claude` trailers, `🤖 Generated with Claude Code` footers, emoji-prefixed AI mentions, or any reference naming Claude, Anthropic, Claude Code, or any AI/LLM as an author, co-author, contributor, or generator.
+- Commit message subjects use Conventional Commits: `type(scope): summary`. Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build`, `style`, `perf`. Example: `feat(scanner): add markdown image exfil pattern`.
 
 ## Adding a command
 
-Files go in `commands/` as `kebab-case-name.md` with this frontmatter:
+`commands/kebab-case-name.md` with frontmatter:
 
 ```markdown
 ---
 description: One-sentence description shown in the slash-command picker
-argument-hint: [optional hint shown to user, e.g. "sector, theme, or thesis"]
+argument-hint: [optional hint, e.g. "sector, theme, or thesis"]
 ---
 ```
 
-After adding a command, update the **Commands** table in `README.md`.
+Update the **Commands** table in `README.md`.
 
 ## Adding a skill
 
-Files go in `skills/kebab-case-name/SKILL.md` with this frontmatter:
+`skills/kebab-case-name/SKILL.md` with frontmatter:
 
 ```markdown
 ---
@@ -30,16 +35,21 @@ description: One-sentence description
 ---
 ```
 
-Supporting reference files go in `skills/kebab-case-name/references/`. After adding a skill, update the **Skills** table in `README.md`.
+Supporting files in `skills/kebab-case-name/references/`. Update the **Skills** table in `README.md`.
 
-## Naming conventions
+## Conventions
 
-- All file and directory names: `kebab-case`
-- Command invocation matches the filename: `investment-rotation-research.md` → `/investment-rotation-research`
+- File and directory names: `kebab-case`.
+- Command filename matches slash invocation: `foo-bar.md` → `/foo-bar`.
+
+## Security & tests
+
+A pre-commit scanner blocks injection patterns in commands/skills/CLAUDE.md content; Betterleaks scans for secrets. See `scripts/scan-injection.py` for the pattern list and `scripts/tests/` for the test suite. Run tests manually with `scripts/tests/run-all.sh`. If a legitimate case trips the scanner, update the pattern AND add a regression test — never bypass.
 
 ## Summary instructions
 
 When summarizing this conversation, preserve:
-- Which commands or skills were added, modified, or removed
-- Any changes to the README tables
-- Branch name and PR status if a change is in flight
+- Commands or skills added/modified/removed
+- README table changes
+- Branch name + PR status if a change is in flight
+- New scanner patterns or test additions

@@ -1,1 +1,8 @@
 .DS_Store
+__pycache__/
+*.pyc
+
+# Claude Code per-machine, per-repo approved commands / permissions.
+# Shared team config (if ever needed) would live in .claude/settings.json
+# instead — keep that path commit-able.
+.claude/settings.local.json
