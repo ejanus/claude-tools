@@ -8,6 +8,8 @@ Personal Claude Code commands and skills repo. Commands are symlinked to `~/.cla
 - One commit per push (pre-push hook enforces). Squash with `git rebase -i HEAD~N` if needed.
 - Don't bypass hooks (`--no-verify`).
 - Don't auto-commit without user approval.
+- No Claude / AI / LLM attribution in commit messages or PR descriptions. Applies to all variants: `Co-Authored-By: Claude` trailers, `🤖 Generated with Claude Code` footers, emoji-prefixed AI mentions, or any reference naming Claude, Anthropic, Claude Code, or any AI/LLM as an author, co-author, contributor, or generator.
+- Commit message subjects use Conventional Commits: `type(scope): summary`. Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build`, `style`, `perf`. Example: `feat(scanner): add markdown image exfil pattern`.
 
 ## Adding a command
 
