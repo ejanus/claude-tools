@@ -1,30 +1,39 @@
 #!/usr/bin/env bash
 # Tests for scripts/check-single-commit.sh.
 #
-# Exercises the six pre-push enforcement paths against the live repo:
-#   1. Missing env vars                            → exit 2
-#   2. 1-commit push (HEAD~1..HEAD)                → exit 0
-#   3. 2-commit push (HEAD~2..HEAD)                → exit 1
-#   4. ZERO_SHA + unresolvable remote default ref  → exit 1
-#   5. ZERO_SHA + valid remote (uses merge-base)   → exit 0 or 1 (probed)
-#   6. Invalid rev-list range (bad SHA)            → exit 1
+# Each git-state test runs the hook against a HERMETIC temporary git
+# repo created on the fly. This isolates test outcomes from the
+# surrounding repo's history, remote configuration, and CI checkout
+# depth (in CI, HEAD is a PR merge commit with non-trivial parent
+# geometry that breaks naive HEAD~N assumptions).
 #
 # Run via: scripts/tests/test_check_single_commit.sh
 # Or:      scripts/tests/run-all.sh
 
-set -uo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="$( cd "$SCRIPT_DIR/../.." && pwd )"
 HOOK="$REPO_ROOT/scripts/check-single-commit.sh"
 
+ZERO_SHA="0000000000000000000000000000000000000000"
+
 PASS=0
 FAIL=0
 FAILED_NAMES=()
 
+# Tmp paths registered here are removed at exit — covers early-fail
+# under `set -e`, where a per-test rm would never run.
+TMP_PATHS=()
+cleanup() {
+    if [ "${#TMP_PATHS[@]}" -gt 0 ]; then
+        rm -rf "${TMP_PATHS[@]}" 2>/dev/null || true
+    fi
+}
+trap cleanup EXIT
+
 # ---------------------------------------------------------------------
-# Assertion helper. Pass the actual exit code and expected code.
-# Captures stderr to a tmp file so a failure can show it.
+# Assertion helper.
 # ---------------------------------------------------------------------
 expect_exit() {
     local name="$1"
@@ -55,87 +64,130 @@ expect_exit() {
     printf "  ✓ %s (exit %s)\n" "$name" "$actual"
 }
 
-# Each test runs in an isolated subshell so env-var unsets don't leak.
-run_with_env() {
-    local stderr_file="$1"
-    shift
-    # Run hook with the remaining args as env=value pairs
-    env -i HOME="$HOME" PATH="$PATH" "$@" bash "$HOOK" 2> "$stderr_file" > /dev/null
+# ---------------------------------------------------------------------
+# Allocate a tmp file path registered for cleanup at script exit.
+# ---------------------------------------------------------------------
+tmpfile() {
+    local f
+    f=$(mktemp)
+    TMP_PATHS+=("$f")
+    echo "$f"
+}
+
+# ---------------------------------------------------------------------
+# Create a hermetic git repo with N commits on `main` plus a synthetic
+# origin/main + origin/HEAD pointing to it. The path is auto-registered
+# for cleanup at script exit. Echoes the repo path on stdout.
+# ---------------------------------------------------------------------
+make_repo() {
+    local n="$1"
+    local dir
+    dir=$(mktemp -d)
+    TMP_PATHS+=("$dir")
+    git -C "$dir" init -q -b main
+    git -C "$dir" config user.email "test@example.com"
+    git -C "$dir" config user.name "test"
+    git -C "$dir" config commit.gpgsign false 2>/dev/null || true
+    local i
+    for i in $(seq 1 "$n"); do
+        printf '%s\n' "$i" > "$dir/file-$i.txt"
+        git -C "$dir" add "file-$i.txt"
+        git -C "$dir" commit -q -m "commit $i"
+    done
+    local sha
+    sha=$(git -C "$dir" rev-parse HEAD)
+    git -C "$dir" update-ref refs/remotes/origin/main "$sha"
+    git -C "$dir" symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
+    echo "$dir"
+}
+
+# ---------------------------------------------------------------------
+# Run the hook inside a given repo with a controlled env. Stdout from
+# the hook is discarded; stderr is captured to $stderr_file. Echoes
+# the hook's exit code.
+# ---------------------------------------------------------------------
+run_hook_in() {
+    local repo="$1"
+    local stderr_file="$2"
+    shift 2
+    (cd "$repo" && env -i HOME="$HOME" PATH="$PATH" "$@" bash "$HOOK") \
+        2> "$stderr_file" > /dev/null
     echo $?
 }
 
-echo "Running check-single-commit.sh tests against $REPO_ROOT"
+echo "Running check-single-commit.sh tests (hermetic)"
 echo
 
 # ---- Test 1: missing env vars ----
-stderr=$(mktemp)
+stderr=$(tmpfile)
 code=$(env -i HOME="$HOME" PATH="$PATH" bash "$HOOK" 2> "$stderr" > /dev/null; echo $?)
 expect_exit "missing env vars" 2 "$code" "$stderr" "PRE_COMMIT_FROM_REF/TO_REF not set"
-rm -f "$stderr"
 
 # ---- Test 2: 1-commit push ----
-from=$(git -C "$REPO_ROOT" rev-parse HEAD~1 2>/dev/null || echo "")
-to=$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || echo "")
-if [ -n "$from" ] && [ -n "$to" ]; then
-    stderr=$(mktemp)
-    code=$(run_with_env "$stderr" PRE_COMMIT_FROM_REF="$from" PRE_COMMIT_TO_REF="$to")
-    expect_exit "1-commit push" 0 "$code" "$stderr"
-    rm -f "$stderr"
-else
-    echo "  ⏭  1-commit push (skipped — repo has < 2 commits)"
-fi
+repo=$(make_repo 2)
+from=$(git -C "$repo" rev-parse HEAD~1)
+to=$(git -C "$repo" rev-parse HEAD)
+stderr=$(tmpfile)
+code=$(run_hook_in "$repo" "$stderr" PRE_COMMIT_FROM_REF="$from" PRE_COMMIT_TO_REF="$to")
+expect_exit "1-commit push" 0 "$code" "$stderr"
 
 # ---- Test 3: 2-commit push ----
-from2=$(git -C "$REPO_ROOT" rev-parse HEAD~2 2>/dev/null || echo "")
-if [ -n "$from2" ] && [ -n "$to" ]; then
-    stderr=$(mktemp)
-    code=$(run_with_env "$stderr" PRE_COMMIT_FROM_REF="$from2" PRE_COMMIT_TO_REF="$to")
-    expect_exit "2-commit push" 1 "$code" "$stderr" "2 commits would be pushed"
-    rm -f "$stderr"
-else
-    echo "  ⏭  2-commit push (skipped — repo has < 3 commits)"
-fi
+repo=$(make_repo 3)
+from=$(git -C "$repo" rev-parse HEAD~2)
+to=$(git -C "$repo" rev-parse HEAD)
+stderr=$(tmpfile)
+code=$(run_hook_in "$repo" "$stderr" PRE_COMMIT_FROM_REF="$from" PRE_COMMIT_TO_REF="$to")
+expect_exit "2-commit push" 1 "$code" "$stderr" "2 commits would be pushed"
 
 # ---- Test 4: ZERO_SHA + unresolvable remote ----
-stderr=$(mktemp)
-code=$(run_with_env "$stderr" \
-    PRE_COMMIT_FROM_REF=0000000000000000000000000000000000000000 \
+repo=$(make_repo 1)
+to=$(git -C "$repo" rev-parse HEAD)
+stderr=$(tmpfile)
+code=$(run_hook_in "$repo" "$stderr" \
+    PRE_COMMIT_FROM_REF="$ZERO_SHA" \
     PRE_COMMIT_TO_REF="$to" \
     PRE_COMMIT_REMOTE_NAME=nonexistent-test-remote)
 expect_exit "ZERO_SHA + invalid remote (fail closed)" 1 "$code" "$stderr" \
     "cannot resolve default branch"
-rm -f "$stderr"
 
-# ---- Test 5: ZERO_SHA + valid remote (probe) ----
-# Result depends on commits-ahead-of-origin. We accept exit 0 or exit 1
-# (both are "hook ran correctly"). What we verify is the script doesn't
-# crash or exit 2 (infra error).
-if git -C "$REPO_ROOT" symbolic-ref refs/remotes/origin/HEAD > /dev/null 2>&1; then
-    stderr=$(mktemp)
-    code=$(run_with_env "$stderr" \
-        PRE_COMMIT_FROM_REF=0000000000000000000000000000000000000000 \
-        PRE_COMMIT_TO_REF="$to")
-    if [ "$code" = "0" ] || [ "$code" = "1" ]; then
-        PASS=$((PASS+1))
-        printf "  ✓ %s (exit %s)\n" "ZERO_SHA + valid remote (probe)" "$code"
-    else
-        FAIL=$((FAIL+1))
-        FAILED_NAMES+=("ZERO_SHA + valid remote")
-        printf "  ✗ %s — unexpected exit %s\n" "ZERO_SHA + valid remote (probe)" "$code"
-        sed 's/^/      /' "$stderr"
-    fi
-    rm -f "$stderr"
-else
-    echo "  ⏭  ZERO_SHA + valid remote (skipped — origin/HEAD not set)"
-fi
+# ---- Test 5: ZERO_SHA + valid origin/HEAD, new branch 1 commit ahead ----
+repo=$(make_repo 1)
+git -C "$repo" checkout -q -b feature
+printf 'feature\n' > "$repo/feature.txt"
+git -C "$repo" add feature.txt
+git -C "$repo" commit -q -m "feature commit"
+to=$(git -C "$repo" rev-parse HEAD)
+stderr=$(tmpfile)
+code=$(run_hook_in "$repo" "$stderr" \
+    PRE_COMMIT_FROM_REF="$ZERO_SHA" \
+    PRE_COMMIT_TO_REF="$to")
+expect_exit "ZERO_SHA + valid remote, 1 commit ahead" 0 "$code" "$stderr"
 
-# ---- Test 6: invalid rev-list range ----
+# ---- Test 6: ZERO_SHA + valid origin/HEAD, new branch 2 commits ahead ----
+repo=$(make_repo 1)
+git -C "$repo" checkout -q -b feature
+for i in 1 2; do
+    printf 'feature %s\n' "$i" > "$repo/feature-$i.txt"
+    git -C "$repo" add "feature-$i.txt"
+    git -C "$repo" commit -q -m "feature commit $i"
+done
+to=$(git -C "$repo" rev-parse HEAD)
+stderr=$(tmpfile)
+code=$(run_hook_in "$repo" "$stderr" \
+    PRE_COMMIT_FROM_REF="$ZERO_SHA" \
+    PRE_COMMIT_TO_REF="$to")
+expect_exit "ZERO_SHA + valid remote, 2 commits ahead (blocked)" 1 "$code" "$stderr" \
+    "2 commits would be pushed"
+
+# ---- Test 7: invalid rev-list range (bad SHA) ----
+repo=$(make_repo 1)
+to=$(git -C "$repo" rev-parse HEAD)
 fake_sha="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-stderr=$(mktemp)
-code=$(run_with_env "$stderr" PRE_COMMIT_FROM_REF="$fake_sha" PRE_COMMIT_TO_REF="$to")
+stderr=$(tmpfile)
+code=$(run_hook_in "$repo" "$stderr" \
+    PRE_COMMIT_FROM_REF="$fake_sha" PRE_COMMIT_TO_REF="$to")
 expect_exit "invalid rev-list range (fail closed)" 1 "$code" "$stderr" \
     "git rev-list --count"
-rm -f "$stderr"
 
 # ---- Summary ----
 echo
