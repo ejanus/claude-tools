@@ -23,9 +23,48 @@ if [ -z "$from_ref" ] || [ -z "$to_ref" ]; then
 fi
 
 if [ "$from_ref" = "$ZERO_SHA" ]; then
-    # New branch on remote — count from merge-base with default branch
-    default_ref=$(git symbolic-ref refs/remotes/origin/HEAD --short 2>/dev/null || echo "origin/main")
-    base=$(git merge-base "$to_ref" "$default_ref" 2>/dev/null) || exit 0
+    # New branch on remote — count from merge-base with the remote's
+    # default branch. Use $PRE_COMMIT_REMOTE_NAME (set by the pre-commit
+    # framework) instead of hardcoding "origin" so the hook works for
+    # forks or non-standard remote names.
+    remote="${PRE_COMMIT_REMOTE_NAME:-origin}"
+    default_ref=$(git symbolic-ref "refs/remotes/$remote/HEAD" --short 2>/dev/null || echo "")
+
+    if [ -z "$default_ref" ]; then
+        cat >&2 <<EOF
+
+Push blocked: cannot resolve default branch for remote "$remote".
+
+This pre-push hook counts commits against the remote's default branch
+on new-branch pushes, but $remote/HEAD is not set locally. Fix with:
+
+  git remote set-head $remote --auto
+
+Then retry the push. Failing closed rather than skipping the check —
+the whole point of this hook is to gate every commit through CI.
+
+EOF
+        exit 1
+    fi
+
+    base=$(git merge-base "$to_ref" "$default_ref" 2>/dev/null) || {
+        cat >&2 <<EOF
+
+Push blocked: no common ancestor between $to_ref and $default_ref.
+
+This usually means the branch was created from a different root than
+the remote's default branch, so there is no shared history to count
+commits against. Rebase onto the default branch and retry:
+
+  git fetch $remote
+  git rebase $default_ref
+
+Failing closed rather than skipping the check — the whole point of
+this hook is to gate every commit through CI.
+
+EOF
+        exit 1
+    }
     range="$base..$to_ref"
 else
     range="$from_ref..$to_ref"

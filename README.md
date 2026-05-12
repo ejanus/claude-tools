@@ -30,7 +30,12 @@ Install [pre-commit](https://pre-commit.com/#installation) for your platform, th
 pre-commit install
 ```
 
-Scans staged Claude content files for prompt injection patterns and secrets before each commit. See `.pre-commit-config.yaml` for the exact scope.
+Wires two stages from one install:
+
+- **pre-commit** — scans staged Claude content files for prompt-injection patterns and runs Gitleaks for secrets before each commit.
+- **pre-push** — blocks pushes that include more than one commit, so every commit triggers its own CI run.
+
+See `.pre-commit-config.yaml` for the exact scope and hook definitions.
 
 ### Selective install
 

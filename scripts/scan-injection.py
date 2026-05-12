@@ -44,8 +44,18 @@ PATTERNS = [
         re.IGNORECASE),
      "data exfiltration"),
 
-    # Hidden / zero-width Unicode that can conceal instructions
-    (re.compile(r'[​‌‍­﻿  ]'),
+    # Hidden / zero-width Unicode that can conceal instructions.
+    # Codepoints are written as explicit \u escapes so the source stays
+    # auditable (literal invisible chars can be silently mutated by
+    # editors/formatters — exactly what this scanner exists to catch):
+    #   U+200B ZERO WIDTH SPACE
+    #   U+200C ZERO WIDTH NON-JOINER
+    #   U+200D ZERO WIDTH JOINER
+    #   U+00AD SOFT HYPHEN
+    #   U+FEFF ZERO WIDTH NO-BREAK SPACE / BOM
+    #   U+2028 LINE SEPARATOR
+    #   U+2029 PARAGRAPH SEPARATOR
+    (re.compile(r'[\u200b\u200c\u200d\u00ad\ufeff\u2028\u2029]'),
      "hidden Unicode character"),
 
 ]
