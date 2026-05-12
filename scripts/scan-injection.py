@@ -54,11 +54,11 @@ found = False
 
 for path in sys.argv[1:]:
     try:
-        text = open(path, encoding='utf-8', errors='replace').read()
+        with open(path, encoding='utf-8', errors='replace') as f:
+            text = f.read()
     except OSError as e:
         print(f"ERROR: cannot read {path}: {e}")
-        found = True
-        continue
+        sys.exit(2)
 
     for pattern, label in PATTERNS:
         match = pattern.search(text)
