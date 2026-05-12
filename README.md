@@ -30,7 +30,7 @@ Install [pre-commit](https://pre-commit.com/#installation) for your platform, th
 pre-commit install
 ```
 
-Scans staged files in `commands/` and `skills/` for prompt injection patterns before each commit.
+Scans staged Claude content files for prompt injection patterns and secrets before each commit. See `.pre-commit-config.yaml` for the exact scope.
 
 ### Selective install
 

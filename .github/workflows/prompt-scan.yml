@@ -3,9 +3,11 @@ name: Security Scan
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - "commands/**"
-      - "skills/**"
+
+# Both jobs run pre-commit/action against the PR diff range, using the hooks
+# defined in .pre-commit-config.yaml as the single source of truth. The
+# pre-commit framework handles file scoping (the `files:` regex per hook),
+# so CI behavior matches local pre-commit exactly.
 
 jobs:
   injection-scan:
@@ -17,13 +19,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Scan for injection patterns
-        env:
-          BASE_REF: ${{ github.base_ref }}
-        run: |
-          git diff --name-only "origin/$BASE_REF"...HEAD \
-            | grep -E '^(commands|skills)/.*\.md$' \
-            | xargs -r python3 scripts/scan-injection.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: scan-prompt-injection --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}
 
   secrets-scan:
     name: Secrets scan
@@ -34,6 +35,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: gitleaks --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}
