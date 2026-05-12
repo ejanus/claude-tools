@@ -22,6 +22,17 @@ mv ~/.claude/commands ~/.claude/commands.bak
 ln -s ~/claude-tools/commands ~/.claude/commands
 ```
 
+### Enable pre-commit hooks
+
+After cloning, run once to activate the prompt injection scanner on every commit:
+
+```bash
+brew install pre-commit   # if not already installed
+pre-commit install
+```
+
+The hook scans any staged file in `commands/` or `skills/` before the commit lands. It runs locally and requires no network access.
+
 ### Selective install
 
 Copy individual files into your existing `~/.claude/commands/` directory:
