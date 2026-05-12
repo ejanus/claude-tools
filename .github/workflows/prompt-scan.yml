@@ -1,0 +1,20 @@
+name: Prompt Injection Scan
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "commands/**"
+      - "skills/**"
+
+jobs:
+  scan:
+    name: Scan for prompt injection
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: promptfoo/code-scan-action@v1
