@@ -2,8 +2,13 @@ repos:
   - repo: local
     hooks:
       - id: scan-prompt-injection
-        name: Scan for prompt injection (commands/ and skills/)
+        name: Prompt injection scan (commands/ and skills/)
         entry: python3 scripts/scan-injection.py
         language: system
         files: ^(commands|skills)/.*\.md$
         pass_filenames: true
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
