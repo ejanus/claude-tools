@@ -24,14 +24,13 @@ ln -s ~/claude-tools/commands ~/.claude/commands
 
 ### Enable pre-commit hooks
 
-After cloning, run once to activate the prompt injection scanner on every commit:
+Install [pre-commit](https://pre-commit.com/#installation) for your platform, then run once from the repo root:
 
 ```bash
-brew install pre-commit   # if not already installed
 pre-commit install
 ```
 
-The hook scans any staged file in `commands/` or `skills/` before the commit lands. It runs locally and requires no network access.
+Scans staged files in `commands/` and `skills/` for prompt injection patterns before each commit.
 
 ### Selective install
 
