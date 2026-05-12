@@ -29,3 +29,13 @@ repos:
         stages: [pre-push]
         pass_filenames: false
         always_run: true
+
+      # Runs the test suite for both scanners. Scoped to changes under
+      # scripts/ — pattern updates and hook tweaks must keep the corpus
+      # green, but README/command edits don't pay the test cost.
+      - id: scanner-test-suite
+        name: Scanner test suite
+        entry: scripts/tests/run-all.sh
+        language: system
+        files: ^scripts/
+        pass_filenames: false

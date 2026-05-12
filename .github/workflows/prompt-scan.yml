@@ -41,3 +41,19 @@ jobs:
       - uses: pre-commit/action@v3.0.1
         with:
           extra_args: gitleaks --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}
+
+  scanner-tests:
+    # Runs the scanner test suite directly (not via pre-commit/action) so
+    # CI always exercises the corpus regardless of whether the PR touches
+    # files matching the pre-commit hook's `files:` regex. This guards
+    # against pattern regressions in any PR that modifies scripts/.
+    name: Scanner test suite
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: scripts/tests/run-all.sh
