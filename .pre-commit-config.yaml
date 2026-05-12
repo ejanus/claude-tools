@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: scan-prompt-injection
+        name: Scan for prompt injection (commands/ and skills/)
+        entry: python3 scripts/scan-injection.py
+        language: system
+        files: ^(commands|skills)/.*\.md$
+        pass_filenames: true
