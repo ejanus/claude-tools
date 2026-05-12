@@ -53,6 +53,10 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history required: test_check_single_commit.sh resolves
+          # HEAD~1 / HEAD~2 to build test fixtures for the pre-push hook.
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
