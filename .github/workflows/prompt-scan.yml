@@ -40,7 +40,7 @@ jobs:
           python-version: "3.x"
       - uses: pre-commit/action@v3.0.1
         with:
-          extra_args: gitleaks --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}
+          extra_args: betterleaks --from-ref ${{ github.event.pull_request.base.sha }} --to-ref ${{ github.event.pull_request.head.sha }}
 
   scanner-tests:
     # Runs the scanner test suite directly (not via pre-commit/action) so

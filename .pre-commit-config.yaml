@@ -15,10 +15,10 @@ repos:
         files: ^\.claude(-plugin)?/.*\.md$|^(commands|skills|agents|output-styles|rules)/.*\.md$|^CLAUDE\.md$
         pass_filenames: true
 
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.30.1
+  - repo: https://github.com/betterleaks/betterleaks
+    rev: v1.2.0
     hooks:
-      - id: gitleaks
+      - id: betterleaks
 
   - repo: local
     hooks:

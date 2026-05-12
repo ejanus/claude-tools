@@ -42,7 +42,7 @@ Supporting files in `skills/kebab-case-name/references/`. Update the **Skills** 
 
 ## Security & tests
 
-A pre-commit scanner blocks injection patterns in commands/skills/CLAUDE.md content; Gitleaks scans for secrets. See `scripts/scan-injection.py` for the pattern list and `scripts/tests/` for the test suite. Run tests manually with `scripts/tests/run-all.sh`. If a legitimate case trips the scanner, update the pattern AND add a regression test — never bypass.
+A pre-commit scanner blocks injection patterns in commands/skills/CLAUDE.md content; Betterleaks scans for secrets. See `scripts/scan-injection.py` for the pattern list and `scripts/tests/` for the test suite. Run tests manually with `scripts/tests/run-all.sh`. If a legitimate case trips the scanner, update the pattern AND add a regression test — never bypass.
 
 ## Summary instructions
 

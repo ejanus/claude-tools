@@ -32,7 +32,7 @@ pre-commit install
 
 Wires two stages from one install:
 
-- **pre-commit** — scans staged Claude content files for 11 categories of prompt-injection patterns (instruction override, tool-poisoning tags, markdown image exfil, Claude-Code config-edit signals, hidden Unicode incl. the Unicode TAG block, non-Latin confusables, and more) and runs Gitleaks for secrets.
+- **pre-commit** — scans staged Claude content files for 11 categories of prompt-injection patterns (instruction override, tool-poisoning tags, markdown image exfil, Claude-Code config-edit signals, hidden Unicode incl. the Unicode TAG block, non-Latin confusables, and more) and runs Betterleaks for secrets.
 - **pre-push** — blocks pushes that include more than one commit, so every commit triggers its own CI run.
 
 See `.pre-commit-config.yaml` for the exact scope and hook definitions, and `scripts/scan-injection.py` for the full pattern list with source citations (OWASP LLM01, recent CVEs, vendor advisories).
