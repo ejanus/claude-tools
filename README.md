@@ -2,24 +2,13 @@
 
 Personal collection of Claude Code slash commands and skills — structured research workflows, productivity tools, and anything else that doesn't belong in a project repo.
 
-Commands are available globally via a symlink from `~/.claude/commands/` to this repo, so they work in every project without copying files.
-
 ## Installation
 
-### Full install (recommended)
-
-Clone and symlink the commands directory so all commands load globally:
+Clone the repo and run Claude Code from inside it. Commands live in `.claude/commands/`; skills in `.claude/skills/`.
 
 ```bash
-git clone https://github.com/ejanus/claude-tools.git ~/claude-tools
-ln -s ~/claude-tools/commands ~/.claude/commands
-```
-
-If `~/.claude/commands` already exists as a directory, back it up first:
-
-```bash
-mv ~/.claude/commands ~/.claude/commands.bak
-ln -s ~/claude-tools/commands ~/.claude/commands
+git clone https://github.com/ejanus/claude-tools.git
+cd claude-tools
 ```
 
 ### Enable pre-commit hooks
@@ -45,14 +34,6 @@ scripts/tests/run-all.sh
 
 Runs `test_scan_injection.py` (Python unittest, 50+ injection payloads with citations) and `test_check_single_commit.sh` (bash, 6 pre-push scenarios). The suite also runs automatically on any commit touching `scripts/` and on every PR in CI.
 
-### Selective install
-
-Copy individual files into your existing `~/.claude/commands/` directory:
-
-```bash
-cp commands/investment-rotation-research.md ~/.claude/commands/
-```
-
 ## Commands
 
 Slash commands invoked as `/command-name` inside Claude Code.
@@ -63,7 +44,7 @@ Slash commands invoked as `/command-name` inside Claude Code.
 
 ## Skills
 
-SKILL.md format skills installable via `npx skills add ejanus/claude-tools`.
+SKILL.md skills at `.claude/skills/<name>/SKILL.md`.
 
 | Skill | Description |
 |---|---|
@@ -73,13 +54,13 @@ SKILL.md format skills installable via `npx skills add ejanus/claude-tools`.
 
 PRs welcome. To add a command:
 
-1. Add `commands/your-command-name.md` with the required frontmatter (`description`, optional `argument-hint`)
+1. Add `.claude/commands/your-command-name.md` with the required frontmatter (`description`, optional `argument-hint`)
 2. Update the Commands table above
 3. Open a PR against `main`
 
 To add a skill:
 
-1. Add `skills/your-skill-name/SKILL.md` with `name` and `description` frontmatter
+1. Add `.claude/skills/your-skill-name/SKILL.md` with `name` and `description` frontmatter
 2. Update the Skills table above
 3. Open a PR against `main`
 
