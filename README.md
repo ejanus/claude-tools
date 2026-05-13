@@ -48,7 +48,7 @@ Each skill lives at `.claude/skills/<name>/SKILL.md`.
 PRs welcome. To add a command:
 
 1. Add `.claude/commands/your-command-name.md` with the required frontmatter (`description`, optional `argument-hint`)
-2. Update the Commands table above
+2. Add or update a Commands table in this README
 3. Open a PR against `main`
 
 To add a skill:

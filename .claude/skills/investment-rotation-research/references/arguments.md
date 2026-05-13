@@ -12,7 +12,7 @@ Parse `$ARGUMENTS` for the realm/theme string and any flags below. Ask the user 
 | Flag | Values | Default |
 | --- | --- | --- |
 | `--output=` | Directory path; supports `~` expansion | (ask, default `~/research/rotations/`) |
-| `--thesis=` | Quoted free text describing a priming view or article | (ask if not derivable from the realm) |
+| `--thesis=` | Quoted free text describing a priming view or article | (included in the one-question prompt when the realm is vague; otherwise derive from current market structure) |
 
 ## The one-question rule
 

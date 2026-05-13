@@ -22,7 +22,7 @@ argument-hint: [optional hint, e.g. "sector, theme, or thesis"]
 ---
 ```
 
-Update the **Commands** table in `README.md`.
+Add or update a Commands table in `README.md`.
 
 ## Adding a skill
 

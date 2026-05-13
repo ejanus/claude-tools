@@ -1,5 +1,6 @@
 ---
 name: investment-rotation-research
+argument-hint: [sector, theme, or rotation thesis]
 description: Investment research for a sector/theme with dual-track picks (one ETF + one single name per realm), backed by a fundamental decision matrix and a technical entry-confidence overlay. Use when the user asks to research a sector rotation, evaluate a theme, find ETF + single-name picks, or apply dual-layer scoring (e.g. "research the silver theme", "rotation into power names", "AI infrastructure picks"). User-invoked only; not auto-routed.
 disable-model-invocation: true
 allowed-tools: Task, WebSearch, WebFetch, Read, Write, Bash
@@ -31,7 +32,7 @@ After elicitation:
 1. Expand `~` in the output path. Create the directory with `mkdir -p -- "<path>"` — quote the path and use `--` to disable option parsing, so paths containing spaces or starting with `-` are handled safely.
 2. Derive the theme slug: lowercase, replace spaces and `/` with `-`, strip remaining punctuation (see [references/arguments.md](references/arguments.md) for the exact rule).
 3. Compute the filename: `Rotation_{theme-slug}_{YYYY-MM-DD}_{HHMMSS}.md` (parent session's current local date and 24-hour time including seconds; `HHMMSS` avoids collisions on rapid same-day reruns).
-4. Confirm: "Spawning research sub-agent for **{theme}**, output to **{path}/{filename}**. Phase 1 alone runs 15–25 searches; expect 4–8 minutes. Proceed? (yes/no)"
+4. Confirm: "Spawning research sub-agent for **{theme}**, output to **{path}/{filename}**. Expect 4–8 minutes for a typical 1–3 realm analysis. Proceed? (yes/no)"
 5. On confirmation, proceed to Phase 2.
 
 ## Phase 2: Spawn the research sub-agent
@@ -42,7 +43,7 @@ The Task prompt must contain:
 
 1. All collected inputs (realm/theme string, priming thesis if any, absolute output path, full filename)
 2. Today's date
-3. An instruction to read [references/research-protocol.md](references/research-protocol.md) for the core inversion, workflow phases 0–3, entry confidence rubric, fundamental decision matrix, and research sources
+3. An instruction to read [references/research-protocol.md](references/research-protocol.md) for the core inversion, workflow phases 0–4, entry confidence rubric, fundamental decision matrix, and research sources
 4. An instruction to read [references/report-template.md](references/report-template.md) for the exact output structure
 5. An instruction to read [references/calibration.md](references/calibration.md) for tone, formatting rules, and analytical pitfalls
 6. An instruction to return only a concise summary (≤15 lines) to the parent
@@ -78,7 +79,7 @@ Phase 1 confirms output path with default; if `silver` is identifiable as a real
 ✅ Report saved: /Users/you/research/rotations/Rotation_silver_2026-05-13_143215.md
 
 Theme: silver
-Silver: ETF SIVR (72% 🟢 GREEN) | Single AG (54% ⚠️ YELLOW)
+Silver: ETF SIVR (72% ✅ GREEN) | Single AG (54% ⚠️ YELLOW)
   Action: Build SIVR now (60–70%). Defer AG sizing until after May 12 earnings.
 Pattern flag: Insider selling at AG accelerated to ~\$100M trailing 12M while price ran 80%. Smart money already moved.
 ```
@@ -94,7 +95,7 @@ A bare `/investment-rotation-research` works too — Phase 1 elicits the realm v
 
 ## Pitfalls
 
-- **The "one clarifying question" rule is intentional** — different from `equity-analysis` (which asks every missing field separately). If the realm is vague, ask ONE focused question that covers realm(s) and any priming thesis. The deliberate UX rule is "do not ask three questions."
+- **The "one clarifying question" rule is intentional.** If the realm is vague, ask ONE focused question that covers realm(s) and any priming thesis. The deliberate UX rule is "do not ask three questions."
 - **Don't default-override a user-specified output path.**
 - **Don't specify a model in the Task call** — inherit from session.
 - **The bullion-ETF scoring exception** (Backlog and Margin marked n/a, scored out of 15 instead of 25) is documented inline in [references/research-protocol.md](references/research-protocol.md). Keep it inline with the criteria it modifies if editing.
