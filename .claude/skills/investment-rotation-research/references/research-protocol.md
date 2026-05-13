@@ -1,17 +1,6 @@
----
-description: Research investment picks (ETF + single-name) for a sector/theme with dual-layer scoring and entry-timing confidence
-argument-hint: [sector, theme, or rotation thesis]
----
+# Research Protocol
 
-# Investment Rotation Research
-
-**User request:** $ARGUMENTS
-
-You are running a structured, two-phase investment research workflow. Produce a publishable financial analysis document with dual-track picks (one ETF + one single-name per realm) backed by a fundamental decision matrix and a technical entry-timing confidence overlay.
-
-If `$ARGUMENTS` is empty or vague, ask **one** focused clarifying question to pin down the realm(s) and any priming thesis. Do not ask three questions. Then proceed.
-
----
+The sub-agent reads this file at startup. It describes the inversion, the four workflow phases, the two scoring rubrics, and the research sources used in Phase 1. Ground every claim in live data — never rely on training-data memory for prices, RSI, institutional flows, or earnings dates. Use the current month and year in queries; stale queries return stale results.
 
 ## The core inversion
 
@@ -21,7 +10,7 @@ A naive workflow goes: thesis → candidate picks → validate with technicals. 
 2. **Then apply the fundamental decision matrix** to the screened survivors. This prevents the failure mode of identifying a "great business" that is a terrible buy at current prices.
 3. **Then synthesize the dual-track picks** (ETF + single name per realm) with explicit entry guidance.
 
-The reason for this ordering: fundamental analysis is path-independent (a company's moat is roughly the same Tuesday as Wednesday), but entry quality is highly time-sensitive (an RSI of 75 today might be 50 next month after a pullback). Starting with time-sensitive signals ensures the picks you surface are *actionable now*, not just theoretically attractive.
+The reason for this ordering: fundamental analysis is path-independent (a company's moat is roughly the same Tuesday as Wednesday), but entry quality is highly time-sensitive (an RSI of 75 today might be 50 next month after a pullback). Starting with time-sensitive signals ensures the picks surfaced are *actionable now*, not just theoretically attractive.
 
 The workflow is **thesis-flexible**: if the user provides a thesis (priming article, macro view, strategist call), incorporate it as framing. If not, derive the implicit thesis from their request and current market structure.
 
@@ -82,29 +71,7 @@ For each realm, select **one ETF and one single name.** This is non-negotiable s
 
 ### Phase 4: Build the article
 
-Use the structure in **§ Output Template** below. The deliverable is a polished markdown file written to the current working directory, named `investment-research-<theme>-<YYYY-MM-DD>.md` (replace spaces in `<theme>` with hyphens). Report the path back to the user when complete.
-
-If the user later wants a `.docx`, they can run `pandoc <file>.md -o <file>.docx`.
-
----
-
-## Important behaviors
-
-**Be wary of crowded trades.** If the candidates are all up 50%+ year-over-year, say so explicitly in the meta-observation. The user deserves to know they're paying for a thesis that the smart money already moved on.
-
-**Insider selling is information, not a verdict.** Executives diversify, exercise options, fund lifestyles — but $100M+ of net selling at a single name over 12 months is meaningful and should be flagged. Quantify it. Don't editorialize beyond what the numbers say.
-
-**Distinguish ETF expense ratios.** For commodity trackers especially, the 20–30 bps gap between competing ETFs (e.g., SIVR 0.30% vs. SLV 0.50%) compounds on multi-year holds. Always state the expense ratio in the ETF pick rationale.
-
-**Be honest when an entry is bad.** A 30% RED confidence score with an explicit "do not chase" is more valuable than a softened recommendation. If the analyst consensus target is below the current price, say so — that's a rare signal worth flagging.
-
-**Never invent specific numbers.** If a search doesn't return precise data (e.g., exact institutional ownership %), say "approximately" or "not disclosed" rather than fabricating. Confidence scores are subjective synthesis — but underlying data points (RSI, price, % from high) must be real.
-
-**Stay non-advisory.** Include a disclaimer at the top of the TL;DR and at the bottom of the document. Never use language like "you should buy" — frame as "entry conditions are constructive" or "best risk-adjusted setup."
-
-**Catalyst calendar matters.** If a candidate has earnings within a week, that's a binary catalyst that should defer sizing decisions. Surface this prominently in the entry read.
-
-**Use current data.** Today's market data is essential — never rely on training data for prices, RSI, institutional flows, or earnings dates. Always search for current values. When formulating queries, use the current month and year; stale queries return stale results.
+Use the structure in [report-template.md](report-template.md). The deliverable is a polished markdown file written to the exact output path passed in by the parent session. Report the path back in the return summary when complete.
 
 ---
 
@@ -143,9 +110,9 @@ Each component contributes up to 20 points. Total range is 0–100.
 **Insider activity (0–20)**
 - **18–20:** Net insider buying over the last 12 months, especially CEO-level. *Rare and bullish.*
 - **14–17:** Roughly balanced or no notable activity. Some option exercises but not material selling.
-- **10–13:** Modest net selling that could plausibly be diversification (<$5M for a mid-cap; scale to size).
-- **5–9:** Significant net selling ($10M–$100M depending on company size), CEO selling material chunks of their holding.
-- **0–4:** $100M+ of net insider selling at all-time highs, CEO repeatedly selling, or pattern of executives exiting. *Red flag.*
+- **10–13:** Modest net selling that could plausibly be diversification (<\$5M for a mid-cap; scale to size).
+- **5–9:** Significant net selling (\$10M–\$100M depending on company size), CEO selling material chunks of their holding.
+- **0–4:** \$100M+ of net insider selling at all-time highs, CEO repeatedly selling, or pattern of executives exiting. *Red flag.*
 
 For ETFs: insider activity doesn't apply. Reallocate that 20 points to institutional flow (flow becomes 40 of the available 100).
 
@@ -171,7 +138,7 @@ For ETFs: insider activity doesn't apply. Reallocate that 20 points to instituti
 
 ### Sanity checks
 
-If your score ends up in the 70s+ but the stock has tripled in the last 12 months, reconsider — momentum exhaustion is real risk. Conversely, if your score is low but the underlying thesis is strong, that may be a "great business, bad price" pattern — note it for re-evaluation later.
+If the score lands in the 70s+ but the stock has tripled in the last 12 months, reconsider — momentum exhaustion is real risk. Conversely, if the score is low but the underlying thesis is strong, that may be a "great business, bad price" pattern — note it for re-evaluation later.
 
 ---
 
@@ -202,7 +169,7 @@ For commodity ETFs (physical bullion): this criterion doesn't apply. Mark "n/a" 
 - **2:** Mild margin pressure. Input cost inflation outpacing pricing.
 - **1:** Significant margin compression. Operating losses or rapidly declining gross margins.
 
-For commodity ETFs: this criterion doesn't apply.
+For commodity ETFs: this criterion doesn't apply. (Combined with criterion 2: bullion trackers score on 3 criteria, 15 max.)
 
 **Criterion 4: Valuation Discipline** — Where is the stock relative to its history and peers?
 - **5:** Trading at a discount to peers and historical median multiples. Margin of safety present.
@@ -232,7 +199,7 @@ For commodity ETFs: this criterion doesn't apply.
 - **Low fundamental + High entry:** Probably noise. The market is rallying a mediocre name temporarily.
 - **Low fundamental + Low entry:** Skip entirely.
 
-For dual-track pick selection in Phase 3, weight roughly 60/40 fundamental/entry. A 22/25 fundamental with 50% entry can still be a defensible pick — note "wait for pullback" in the suggested action. A 17/25 fundamental with 75% entry probably means there's a better pick you haven't found.
+For dual-track pick selection in Phase 3, weight roughly 60/40 fundamental/entry. A 22/25 fundamental with 50% entry can still be a defensible pick — note "wait for pullback" in the suggested action. A 17/25 fundamental with 75% entry probably means there's a better pick that hasn't surfaced yet.
 
 ### Common scoring mistakes to avoid
 
@@ -240,7 +207,7 @@ For dual-track pick selection in Phase 3, weight roughly 60/40 fundamental/entry
 - **Treating recent stock performance as a fundamental signal.** Up 100% in a year tells you about sentiment, not backlog quality.
 - **Forgetting ETFs need their own purity check.** An "AI ETF" holding 30% Apple and Microsoft is not pure-play. Read the holdings.
 - **Letting valuation score do all the work.** A cheap stock is often cheap for a reason. Pair valuation with the other four criteria.
-- **Ignoring the "what breaks the thesis" question.** Thesis fragility belongs in your scoring — likely as a Catalyst Proximity haircut or as a caveat in the article.
+- **Ignoring the "what breaks the thesis" question.** Thesis fragility belongs in scoring — likely as a Catalyst Proximity haircut or as a caveat in the article.
 
 ---
 
@@ -324,8 +291,8 @@ Extract: next earnings date (within 7 days = binary catalyst); any relevant macr
 - Skip insider activity (ETFs don't have insiders).
 - Fund flows replace institutional ownership as the primary flow signal.
 - Expense ratio matters disproportionately for commodity trackers — often the deciding factor (e.g., SIVR 0.30% vs. SLV 0.50%).
-- AUM growth rate is the key adoption signal — newer thematic ETFs going from $100M to $500M in months are accelerating; mature ETFs with flat AUM are not.
-- Always read the top holdings list. An "AI infrastructure" ETF holding regulated utilities is misnamed.
+- AUM growth rate is the key adoption signal — newer thematic ETFs going from \$100M to \$500M in months are accelerating; mature ETFs with flat AUM are not.
+- Read the top holdings list. An "AI infrastructure" ETF holding regulated utilities is misnamed.
 
 ### Edge cases
 
@@ -334,178 +301,3 @@ Extract: next earnings date (within 7 days = binary catalyst); any relevant macr
 - **Stale data:** If searches return data older than 30 days, try alternative sources. If multiple are stale, flag — the ticker may be illiquid or under-followed.
 - **Conflicting technical signals:** Different platforms occasionally disagree. Report the disagreement rather than picking one — "signals mixed across platforms" is a real finding.
 - **No analyst coverage:** Small caps and new ETFs may have no targets. Note explicitly — absence of coverage is itself information.
-
----
-
-## § Output Template
-
-The deliverable is a markdown file (`investment-research-<theme>-<YYYY-MM-DD>.md`) written to the current working directory. Length: 8–15 printed pages typical. The TL;DR should be scannable in under 30 seconds — a reader should be able to identify the picks and their entry confidence from the first section alone.
-
-Use color/emphasis conventions for the GREEN/YELLOW/RED entry-confidence labels:
-- GREEN: bold + leading emoji ✅ or a `> GREEN` blockquote tag
-- YELLOW: bold + leading emoji ⚠️ or a `> YELLOW` blockquote tag
-- RED: bold + leading emoji ⛔ or a `> RED` blockquote tag
-
-(Only use emojis here — they communicate the color band cleanly in markdown. Don't sprinkle emojis elsewhere.)
-
-### Section 1: Title block
-
-Four lines:
-
-```
-> MARKET ANALYSIS | [THEME] | [VERSION OR DATE IDENTIFIER]
-
-# [Headline of the research]
-
-*[One-sentence description of the analytical approach]*
-
-Published [DATE]  |  Technicals as of market close [DATE]
-```
-
-### Section 2: TL;DR with entry confidence
-
-The most important section. A reader should be able to identify the picks and their entry quality from this section alone.
-
-Open with one short paragraph framing the dual-track approach. Then:
-
-*Confidence framing note (italic):* one sentence noting that confidence scores blend technicals, flows, insider activity, valuation, and catalysts — and are not statistical probabilities.
-
-**The TL;DR table.** Five columns:
-
-| Realm | Type | Ticker | Entry Conf. | One-Line Read |
-
-Each realm gets two rows: one for the ETF pick, one for the single-name pick. Add a third row if a defensive complement is included.
-
-In the **Entry Conf.** cell, label like `70% ✅ GREEN`, `58% ⚠️ YELLOW`, or `32% ⛔ RED`.
-
-In the **One-Line Read** cell, write a 12–20 word characterization combining current state and action. Examples:
-- "Off 29% from Feb peak. Cleanest macro proxy; cheapest expense ratio (0.30%). Watch CPI catalyst."
-- "Best business, worst price. Insiders dumped ~$100M last year. Wait for pullback to $980–1000."
-- "Do not chase. Q1 loss, overbought RSI, analyst targets BELOW current price."
-
-**Ranked best-entry-today list** (right below the table). Brief intro sentence followed by bullets ranked by entry confidence, formatted as:
-
-`[TICKER] (XX%) — [12–15 word characterization]`
-
-End the TL;DR with a one-paragraph disclaimer in italic.
-
-### Section 3: The thesis
-
-Two to four paragraphs explaining the underlying investment thesis driving the picks. If a priming article exists, cite it. If not, derive the thesis from current market structure.
-
-Cover:
-- The setup (what the thesis claims will happen)
-- Why now (macro tailwinds or sector inflection)
-- The "kicker" (the strongest argument for the thesis)
-
-Write like a senior analyst briefing a portfolio manager, not academic prose.
-
-### Section 4: Methodology
-
-Two clearly labeled subsections:
-
-**Layer 1: Fundamental Decision Matrix.** Lead paragraph explaining the 25-point scoring (or 15-point for commodity ETFs). Bullet the five criteria with one-line definitions.
-
-**Layer 2: Entry Confidence Read.** Lead paragraph explaining the 0–100% synthesis. Bullet the five components. End with one sentence on color thresholds (65+ GREEN, 50–64 YELLOW, <50 RED).
-
-### Section 5: Per-realm deep dive
-
-One H1 (`#`) section per realm. Inside each:
-
-**5.1 Realm context** — Two to three paragraphs. Macro context (supply/demand setup, regulatory backdrop), recent price action across the sector, why this realm is in the thesis at all.
-
-**5.2 Decision matrix table** — All candidates in this realm with their fundamental scores. Eight columns:
-
-| Ticker | Type | Pure | Back | Marg | Val | Cat | Total |
-
-Bold the selected ETF pick and the selected single-name pick rows; show their total scores in bold. For physical-commodity ETFs (bullion trackers), show "n/a" in Backlog and Margin columns and score them out of 15.
-
-**5.3 ETF pick deep dive**
-
-H3 heading: `### ETF Pick: [TICKER] — [Full Name]`
-
-Two H4 subsections:
-
-*Thesis Fit* — Two paragraphs: what the ETF actually holds; why it's the right basket for this trade; competing ETFs you considered and rejected (and why); cost or structural advantages (expense ratio, AUM, liquidity).
-
-*Entry Read: [XX%] [COLOR] — [Short Characterization]* — Three paragraphs: current price, % from 52-week high, technical state (RSI, MA alignment, trend); institutional/fund flow data; specific entry guidance (`Best entry zone: [price level]`) and catalysts.
-
-**5.4 Single-name pick deep dive**
-
-Same H3 + H4 structure.
-
-*Thesis Fit* — Two paragraphs: what the company does and how it captures the thesis; recent quarterly evidence (orders, backlog, margins); specific products/segments driving sector exposure; trade-offs (operational risk, geographic concentration, execution dependencies).
-
-*Entry Read* — Three to four paragraphs: technical state (price, % from high, RSI, MA alignment, support); institutional positioning (ownership %, recent changes, notable holders); insider activity — explicit and quantified, naming executives where behavior is notable; valuation vs. analyst targets (flag any consensus-below-current-price); specific entry guidance with price levels.
-
-**5.5 Defensive complement (when applicable)** — Include a third pick if the realm lacks a good basket option (ETF scored below 17/25), if a second single name offers genuine portfolio balance (low-beta + high-beta pair), or if the user benefits from the optionality.
-
-**5.6 Suggested pairing** — One paragraph with a **bolded lead** recommending the position-size ratio (e.g., "**60–70% SIVR / 30–40% AG**"). Explain — typically that the ETF anchors macro thesis and the single name provides torque, with weighting adjusted by entry-confidence gap.
-
-**5.7 Signals to watch** — Bulleted list of 4–6 specific things to monitor. Concrete and observable, not vague. Good:
-- "April CPI print: if YoY exceeds 3-month T-bill yield, the negative-real-rates thesis activates"
-- "GEV quarterly electrification order intake. Q1 was the tell; another step-up in Q2 confirms thesis."
-
-Avoid vague signals like "watch the macro" or "monitor sentiment."
-
-### Section 6: Cross-realm summary
-
-Two paragraphs synthesizing patterns across realms. What does the analysis collectively reveal? Where are the strongest and weakest entries?
-
-**Final Picks at a Glance** — Summary table:
-
-| Realm | ETF Pick | Single Pick | Entry Conf. | Suggested Action |
-
-The **Suggested Action** column is critical — one concrete instruction per row:
-- "Build SIVR now (60–70%). Defer AG sizing until after May 12 earnings."
-- "Build LIN now (70%). Hold CC slot at 30%; defer purchase until $22–24."
-
-**Position Sizing Across the Realms** — One to two paragraphs on whether equal-dollar allocation makes sense or whether thesis-weighted allocation is more honest. Address correlation between the realms.
-
-**Two Patterns Worth Flagging** — Two bolded callouts on cross-cutting observations. Keep them sharp; this is where you say what most other research won't.
-
-### Section 7: What breaks the thesis
-
-A short bear-case stress test. Open with one sentence framing this as honest risk disclosure. Then three bulleted scenarios with bolded leads:
-
-- **Scenario name:** One to two sentences explaining how this scenario would damage the thesis and which picks would be hit first.
-
-Common scenarios: Fed/macro pivot; demand-side disappointment (capex slowdown, end-customer pullback); sentiment shift (multiple compression even with fundamentals intact); regulatory action; geopolitical disruption.
-
-### Section 8: Honest meta-observation
-
-One to two paragraphs. This is where you say the thing that's true but uncomfortable. Common version: "These are already crowded trades. [Names] are up [%] in [period]. The framing implies another leg up, but you're not buying at consensus-skeptical levels — you're paying for a thesis the smart money already moved on."
-
-Close with a one-paragraph statement of why the dual-track structure helps hedge this exact risk.
-
-### Section 9: Disclaimer
-
-At the very end, in italic, separated by a horizontal rule:
-
-> *This document is analytical research, not financial advice. It applies a structured framework — fundamental decision matrix plus technical entry confidence overlay — to identify candidate vehicles for expressing the underlying thesis. All scoring is subjective and based on publicly available information as of [DATE]. Confidence scores synthesize technical signals, institutional flows, insider activity, valuation, and catalyst proximity; they are not statistical probabilities of success. Past performance does not predict future results. Conduct your own due diligence and consult a licensed financial advisor before making investment decisions. The author holds no positions in any securities mentioned at the time of writing.*
-
-### General writing principles
-
-- **Lead with the conclusion.** Every section header should be readable as a standalone sentence summarizing what follows.
-- **Use active voice.** "Insiders sold $100M" not "$100M was sold by insiders."
-- **Quantify everything.** Replace "significant" with the actual number.
-- **Avoid hedging.** "It might be worth considering" is weak. "Build the position now" or "Wait for $22–24" is strong.
-- **Keep paragraphs tight.** Max 4–5 sentences; break if longer.
-- **End sections crisply.** No "in conclusion" — just stop when the section's job is done.
-
-### What to skip
-
-- Boilerplate "about the author" sections
-- General market commentary unrelated to the picks
-- Repeating the "not financial advice" disclaimer in every section (top + bottom only)
-- Footnotes or extensive citations — link to sources naturally in prose if needed
-
-This is a decision-support document, not a compliance-review research report. Optimize for actionability.
-
----
-
-## After writing the file
-
-1. Report the absolute path of the file you wrote.
-2. Mention: "If you want a `.docx` version, run: `pandoc <path>.md -o <path>.docx`."
-3. Do not open or render it for the user — they'll review on their own.
