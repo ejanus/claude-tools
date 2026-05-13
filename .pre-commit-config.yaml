@@ -9,10 +9,9 @@ repos:
         entry: python3 scripts/scan-injection.py
         language: system
         # Scope — single source of truth for both local pre-commit and CI:
-        #   - ANY markdown under .claude/ or .claude-plugin/ (future-proof for new Claude conventions)
-        #   - Top-level commands/, skills/, agents/, output-styles/, rules/ (symlink-to-home convention)
+        #   - ANY markdown under .claude/ or .claude-plugin/ (commands, skills, agents, etc.)
         #   - Root CLAUDE.md (loaded into every Claude session)
-        files: ^\.claude(-plugin)?/.*\.md$|^(commands|skills|agents|output-styles|rules)/.*\.md$|^CLAUDE\.md$
+        files: ^\.claude(-plugin)?/.*\.md$|^CLAUDE\.md$
         pass_filenames: true
 
   - repo: https://github.com/betterleaks/betterleaks
