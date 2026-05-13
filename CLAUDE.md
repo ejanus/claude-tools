@@ -1,6 +1,6 @@
 # claude-tools
 
-Personal Claude Code commands and skills repo. Commands are symlinked to `~/.claude/commands/` for global availability.
+Personal Claude Code commands and skills repo. Commands live in `.claude/commands/`; skills in `.claude/skills/`.
 
 ## Commit & push rules
 
@@ -13,7 +13,7 @@ Personal Claude Code commands and skills repo. Commands are symlinked to `~/.cla
 
 ## Adding a command
 
-`commands/kebab-case-name.md` with frontmatter:
+`.claude/commands/kebab-case-name.md` with frontmatter:
 
 ```markdown
 ---
@@ -26,7 +26,7 @@ Update the **Commands** table in `README.md`.
 
 ## Adding a skill
 
-`skills/kebab-case-name/SKILL.md` with frontmatter:
+`.claude/skills/kebab-case-name/SKILL.md` with frontmatter:
 
 ```markdown
 ---
@@ -35,7 +35,7 @@ description: One-sentence description
 ---
 ```
 
-Supporting files in `skills/kebab-case-name/references/`. Update the **Skills** table in `README.md`.
+Supporting files in `.claude/skills/kebab-case-name/references/`. Update the **Skills** table in `README.md`.
 
 ## Conventions
 
@@ -44,7 +44,7 @@ Supporting files in `skills/kebab-case-name/references/`. Update the **Skills** 
 
 ## Security & tests
 
-A pre-commit scanner blocks injection patterns in commands/skills/CLAUDE.md content; Betterleaks scans for secrets. See `scripts/scan-injection.py` for the pattern list and `scripts/tests/` for the test suite. Run tests manually with `scripts/tests/run-all.sh`. If a legitimate case trips the scanner, update the pattern AND add a regression test — never bypass.
+A pre-commit scanner blocks injection patterns in Claude content under `.claude/` plus the root `CLAUDE.md`; Betterleaks scans for secrets. See `scripts/scan-injection.py` for the pattern list and `scripts/tests/` for the test suite. Run tests manually with `scripts/tests/run-all.sh`. If a legitimate case trips the scanner, update the pattern AND add a regression test — never bypass.
 
 ## Summary instructions
 
