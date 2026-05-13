@@ -34,14 +34,6 @@ scripts/tests/run-all.sh
 
 Runs `test_scan_injection.py` (Python unittest, 50+ injection payloads with citations) and `test_check_single_commit.sh` (bash, 6 pre-push scenarios). The suite also runs automatically on any commit touching `scripts/` and on every PR in CI.
 
-## Commands
-
-Slash commands invoked as `/command-name` inside Claude Code.
-
-| Command | Description |
-|---|---|
-| `/investment-rotation-research` | Research investment picks (ETF + single-name) for a sector/theme with dual-layer scoring and entry-timing confidence |
-
 ## Skills
 
 Each skill lives at `.claude/skills/<name>/SKILL.md`.
@@ -49,6 +41,7 @@ Each skill lives at `.claude/skills/<name>/SKILL.md`.
 | Skill | Description |
 |---|---|
 | `equity-analysis` | Equity research report for a publicly traded stock with scored decision matrix and action grid |
+| `investment-rotation-research` | Sector/theme research with dual-track picks (ETF + single name per realm), fundamental matrix, and entry-confidence overlay |
 
 ## Contributing
 
