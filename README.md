@@ -67,7 +67,7 @@ SKILL.md format skills installable via `npx skills add ejanus/claude-tools`.
 
 | Skill | Description |
 |---|---|
-| *(coming soon)* | — |
+| `equity-analysis` | Equity research report for a publicly traded stock with scored decision matrix and action grid |
 
 ## Contributing
 
