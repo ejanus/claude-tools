@@ -2,6 +2,8 @@
 
 The sub-agent writes a single Markdown file to the exact path passed in by the parent session (pattern: `{OUTPUT_DIR}/Rotation_{theme-slug}_{YYYY-MM-DD}_{HHMMSS}.md`) using the structure below, in this order. Length: 8–15 printed pages typical. The TL;DR should be scannable in under 30 seconds — a reader should be able to identify the picks and their entry confidence from the first section alone.
 
+**Ticker links:** render every ticker as a Yahoo Finance quote link — `[TICKER](https://finance.yahoo.com/quote/TICKER)`. Apply it in the TL;DR table, the ranked best-entry list, each per-realm decision matrix, the `### ETF Pick` / single-name headings, and the Final Picks at a Glance table. Full rule in `calibration.md` → Markdown rendering rules.
+
 ## Color/emphasis conventions
 
 Use color emojis for the GREEN/YELLOW/RED entry-confidence labels (only here — they communicate the color band cleanly in markdown; do not sprinkle emojis elsewhere):

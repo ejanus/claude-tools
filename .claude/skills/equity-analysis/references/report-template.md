@@ -2,6 +2,8 @@
 
 The sub-agent writes a single Markdown file to the exact path passed in by the parent session (pattern: `{OUTPUT_DIR}/{TICKER}_Analysis_{YYYY-MM-DD}_{HHMMSS}.md`) using the structure below, in this order.
 
+**Ticker links:** render every ticker as a Yahoo Finance quote link — `[TICKER](https://finance.yahoo.com/quote/TICKER)`. Apply it to the H1 header ticker, the Peer Comparison table, and the composite call-out lines. Full rule in `calibration.md` → Markdown rendering rules.
+
 ## Header
 
 ```

@@ -21,6 +21,10 @@ These are non-negotiable — many renderers (the Claude Code preview pane, GitHu
 - Table separator rows use space-padded pipes: `| --- | --- |`, matching the data-row style. Do not use the compact form (`|---|---|`) — markdownlint MD060 flags the mismatch and some renderers tighten the column widths inconsistently.
 - Leave a blank line above and below every heading, list, and table (markdownlint MD022 / MD032).
 - No trailing punctuation in headings, especially `:`. If you want a lead-in label, put it as a **bold-prefixed** sentence on the line below the heading instead.
+- **Link every ticker to its Yahoo Finance quote page.** Render each ticker symbol as `[TICKER](https://finance.yahoo.com/quote/TICKER)` — e.g. `[TSLA](https://finance.yahoo.com/quote/TSLA)`. Yahoo is the default review destination: most popular, free, no login, and one URL pattern covers both stocks and ETFs.
+  - Use the bare, uppercase ticker with no exchange suffix. For share-class or special symbols use Yahoo's convention (dash, not dot): `BRK-B`, not `BRK.B`.
+  - Link tickers in their **anchor locations** — the primary ticker in the H1 header `({Exchange}: [TICKER](...))`, every ticker cell in the Peer Comparison table, and composite call-out lines (`[TICKER](...) lands at {score} → ...`). Don't link every prose mention; anchors keep the report clickable without link spam.
+  - The link wraps only the symbol text — keep the `Exchange:` label, prices (`\$...`), and scores as plain text outside it.
 
 ## Tone
 
